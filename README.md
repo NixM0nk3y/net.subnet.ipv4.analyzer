@@ -1,19 +1,19 @@
 # net.subnet.ipv4.analyzer
 
-This script will parse your defined networks and subnets and print any undefined ip space.
+### This script will parse your defined networks and subnets and print any undefined ip space.
 example:
 ```
->cat networks.txt 
+$ cat networks.txt 
 127.0.0.0/22
 ```
 ```
->cat subnets.txt 
+$ cat subnets.txt 
 127.0.0.0/30
 127.0.0.64/29
 127.0.1.0/25
 ```
 ```
-[pawl@felix foo]$ ./free_subnets.py 
+$ ./free_subnets.py 
 Available IP subnets
 START:      127.0.0.32	END:      127.0.0.63	SIZE: 32 (/27)
 START:      127.0.0.16	END:      127.0.0.31	SIZE: 16 (/28)
