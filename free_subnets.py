@@ -13,6 +13,10 @@ import bisect
 _subnets_config="subnets.txt"   ## list of all the defined subnets in CIDR format (127.0.0.1/8)
 _networks_config="networks.txt" ## list of all define networks in CIDR format delimited by newline.
 
+# biggest subnet to chunk free space into
+# script breaks if free subnets are larger than this
+MASK_SIZE=8
+
 def File2Strings(filename):
     try:
         f = open(filename, 'r')
@@ -124,7 +128,7 @@ def checkSubnetListForAlignment(i):
 
 def checkHostForAlignment(ip,hosts=None,bits=None):
     _numHosts = None
-    _subdict = getSubnetLutDict(24)
+    _subdict = getSubnetLutDict(MASK_SIZE)
 
     if(hosts is None and bits is None):
         return False
@@ -145,7 +149,10 @@ def checkHostForAlignment(ip,hosts=None,bits=None):
 #
 
 def hosts2bits(hosts):
-    _subdict = getSubnetLutDict(24)
+
+    _subdict = getSubnetLutDict(MASK_SIZE)
+    #print(hosts)
+    #print(_subdict)
     if( hosts in _subdict ):
         return _subdict[hosts]
     else:
@@ -153,7 +160,7 @@ def hosts2bits(hosts):
 #
 
 def bits2hosts(bits):
-    _subdict = getSubnetLutDict(24)
+    _subdict = getSubnetLutDict(MASK_SIZE)
     if( bits in list(_subdict.values()) ):
         return list(_subdict.keys())[list(_subdict.values()).index(bits)]
     else:
@@ -168,17 +175,19 @@ def getSubnetLutDict(downto):
     lut = {}
     num_hosts=1; #entrie 0 = 1 host (32 bits)
     entries = list(range(downto,32+1,1))
+
     entries.sort()
     entries.reverse()
     for i in entries:
         lut.update({num_hosts:i})
         num_hosts = num_hosts * 2
+
     return lut
 #
 def getInterval(n):
     """ gets the closest match (as defined as a key in our dict
     rounded down """
-    _list = [x for x in getSubnetLutDict(24)]
+    _list = [x for x in getSubnetLutDict(MASK_SIZE)]
     _list.sort()
     return _list[bisect.bisect(_list,n)-1]
     #return min(getSubnetLutDict(24), key=lambda x:abs(x-n))
