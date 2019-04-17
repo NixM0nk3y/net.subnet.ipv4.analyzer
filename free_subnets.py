@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 __description__ = 'ipv4 network address analyzer.  prints all unassigned ip blocks'
 __author__ = 'Paul Komurka pawlex@gmail.com'
@@ -19,7 +19,7 @@ def File2Strings(filename):
     except:
         return None
     try:
-        return map(lambda line:line.rstrip('\n'), f.readlines())
+        return [line.rstrip('\n') for line in f.readlines()]
     except:
         return None
     finally:
@@ -28,13 +28,13 @@ def File2Strings(filename):
 #
 
 def ipstr2int(ip):
-    return int(ipaddress.ip_address(unicode(ip)))
+    return int(ipaddress.ip_address(str(ip)))
 
 def ipint2str(ip):
     return str(ipaddress.ip_address(ip))
 
 def expandNetwork(network):
-    _ = ipaddress.ip_network(unicode(network),False)
+    _ = ipaddress.ip_network(str(network),False)
     _ = _.__iter__()
     return [int(x) for x in _]
 #
@@ -66,7 +66,7 @@ def Main():
 
     ## Make sequential lists of the leftovers.
     _ = []
-    for k, g in itertools.groupby(enumerate(_ip_orphans), lambda (i, x): i-x):
+    for k, g in itertools.groupby(enumerate(_ip_orphans), lambda i_x: i_x[0]-i_x[1]):
         #print map(operator.itemgetter(1), g)
         _.append([ipint2str(y) for y in map(operator.itemgetter(1), g)])
     _ip_orphans = _
@@ -76,7 +76,7 @@ def Main():
     ## Now comes the fun part.  Make the largest aligned subnets out of the left overs.
     _unaligned = []
     _aligned   = []
-    print 
+    print() 
     for i in _ip_orphans:
         if(checkSubnetListForAlignment(i)):
             _aligned.append(i)
@@ -84,8 +84,8 @@ def Main():
             _unaligned.append(i)
         #
     #
-    print "Available IP subnets"
-    map(printSubnetSummary, _aligned)
+    print("Available IP subnets")
+    list(map(printSubnetSummary, _aligned))
     ## Handle the unaligned subnets.  Keep iterating throught the list until we
     ## have made the largest subnets possible.
     for u in _unaligned:
@@ -130,9 +130,9 @@ def checkHostForAlignment(ip,hosts=None,bits=None):
         return False
     
     if(hosts is None):
-        _numHosts = _subdict.keys()[_subdict.values().index(bits)]
+        _numHosts = list(_subdict.keys())[list(_subdict.values()).index(bits)]
     else:
-        if(hosts in _subdict.keys()):
+        if(hosts in list(_subdict.keys())):
             _numHosts = hosts
         else:
             return False
@@ -154,20 +154,20 @@ def hosts2bits(hosts):
 
 def bits2hosts(bits):
     _subdict = getSubnetLutDict(24)
-    if( bits in _subdict.values() ):
-        return _subdict.keys()[_subdict.values().index(bits)]
+    if( bits in list(_subdict.values()) ):
+        return list(_subdict.keys())[list(_subdict.values()).index(bits)]
     else:
         return 32
 #
 
 def printSubnetSummary(i):
-    print "START:%16s\tEND:%16s\tSIZE:%3d (/%d)"%( i[0],i[-1],len(i), hosts2bits(len(i)))
+    print("START:%16s\tEND:%16s\tSIZE:%3d (/%d)"%( i[0],i[-1],len(i), hosts2bits(len(i))))
 
 def getSubnetLutDict(downto):
     """ creates a subnet lut 32:downto entries with corresponding number of hosts as the value"""
     lut = {}
     num_hosts=1; #entrie 0 = 1 host (32 bits)
-    entries = range(downto,32+1,1)
+    entries = list(range(downto,32+1,1))
     entries.sort()
     entries.reverse()
     for i in entries:
